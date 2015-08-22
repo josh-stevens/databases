@@ -21,9 +21,8 @@ module.exports = {
       var db = database.dbConnection();
 
         // query user table to check if user exists
-      module.exports.users.get(username, db, function(result) {
-        console.log(result);
-        if (!result) {
+      module.exports.users.get(username, db, function(userResult) {
+        if (userResult.length === 0) {
           // if no, insert user into table, and try to post again
           module.exports.users.post(username, db, function() {
             db.end();
@@ -31,20 +30,20 @@ module.exports = {
           })
         } else {
           // if yes, store user id in variable
-          userId = result[0].id;
+          userId = userResult[0].id;
           // query rooms table to check if room exists
-          module.exports.rooms.get(roomname, db, function(result) {
+          module.exports.rooms.get(roomname, db, function(roomResult) {
             // if no, insert room into table, and try to post again
-            if (!result) {
-              module.exports.users.post(username, db, function() {
+            if (roomResult.length === 0) {
+              module.exports.rooms.post(roomname, db, function() {
                 db.end();
                 module.exports.messages.post(message);
               })
             } else {
               // if yes, store room id in variable
-              roomId = result[0].id;
+              roomId = roomResult[0].id;
               // insert message into messages table
-              db.query("insert into messages (msg_text, id_rooms, id_user) values ('" + body + "'," + roomId + "," + userId + ")", function(err, results) {
+              db.query("insert into messages (msg_text, id_rooms, id_users) values ('" + body + "'," + roomId + "," + userId + ")", function(err, results) {
                 cb();
                 db.end();
               });
@@ -58,7 +57,7 @@ module.exports = {
   users: {
     // Ditto as above.
     get: function (username, db, cb) {
-      db.query("select * from users where username=" + username, function(err, results) {
+      db.query("select * from users where username='" + username + "'", function(err, results) {
         cb(results);
       });
     },
@@ -72,7 +71,7 @@ module.exports = {
 
   rooms: {
     get: function(roomname, db, cb) {
-      db.query("select * from rooms where roomname=" + roomname, function(err, results) {
+      db.query("select * from rooms where roomname='" + roomname + "'", function(err, results) {
         cb(results);
       });
     },
