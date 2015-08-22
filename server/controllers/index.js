@@ -18,6 +18,7 @@ module.exports = {
       // models.post(something)
       models.messages.post(req.body, function() {
         res.status(201);
+
         res.send();
       })
 

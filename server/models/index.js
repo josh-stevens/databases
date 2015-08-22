@@ -16,7 +16,8 @@ module.exports = {
       });
     },
     post: function (message, cb) {
-      var username = message['username'], roomname = message['roomname'], body = message['text'], userId;
+      var username = message['username'], roomname = message['roomname'], body = message['message'], userId;
+      body = body.split("'").join("''");
 
       var db = database.dbConnection();
 
@@ -43,9 +44,12 @@ module.exports = {
               // if yes, store room id in variable
               roomId = roomResult[0].id;
               // insert message into messages table
+              console.log("insert query: ", "insert into messages (msg_text, id_rooms, id_users) values ('" + body + "'," + roomId + "," + userId + ")")
               db.query("insert into messages (msg_text, id_rooms, id_users) values ('" + body + "'," + roomId + "," + userId + ")", function(err, results) {
-                db.end();
-                cb();
+                db.query("select * from messages", function (err, data) { console.log("Table after post: ", data);
+                  db.end();
+                  cb();
+                })
               });
             }
           })
