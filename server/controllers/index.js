@@ -8,13 +8,18 @@ module.exports = {
     get: function (req, res) {
       models.messages.get(function(messages){
         //construct response from messages
-        res.writeHead(200, {'Content-Type':'application/json'});
-        res.end(JSON.stringify(messages));
+
+        res.status(200).append('Content-Type', 'application/json');
+        res.send(JSON.stringify(messages));
       });
 
-    }, // a function which handles a get request for all messages
+    },
     post: function (req, res) {
       // models.post(something)
+      models.messages.post(req.body, function() {
+        res.status(201);
+        res.send();
+      })
 
     } // a function which handles posting a message to the database
   },

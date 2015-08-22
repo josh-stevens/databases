@@ -9,7 +9,7 @@ module.exports = {
     get: function (cb) {
       var messages = {results:[]};
       var db = database.dbConnection();
-      db.query("select * from messages", function(err, results) {
+      db.query("select username, msg_text, roomname, created_at from messages join users on messages.id_users = users.id join rooms on messages.id_rooms = rooms.id", function(err, results) {
         messages.results = results;
         cb(messages);
         db.end();
@@ -26,7 +26,7 @@ module.exports = {
           // if no, insert user into table, and try to post again
           module.exports.users.post(username, db, function() {
             db.end();
-            module.exports.messages.post(message);
+            module.exports.messages.post(message, cb);
           })
         } else {
           // if yes, store user id in variable
@@ -37,15 +37,15 @@ module.exports = {
             if (roomResult.length === 0) {
               module.exports.rooms.post(roomname, db, function() {
                 db.end();
-                module.exports.messages.post(message);
+                module.exports.messages.post(message, cb);
               })
             } else {
               // if yes, store room id in variable
               roomId = roomResult[0].id;
               // insert message into messages table
               db.query("insert into messages (msg_text, id_rooms, id_users) values ('" + body + "'," + roomId + "," + userId + ")", function(err, results) {
-                cb();
                 db.end();
+                cb();
               });
             }
           })
@@ -82,5 +82,3 @@ module.exports = {
     }
   }
 };
-
-module.exports.messages.post({'username': 'fakeUser', 'text': 'Testing!', 'roomname' : 'makersquare' }, function(){console.log('done')});
